@@ -18,12 +18,12 @@ object Main extends App {
       // on a separate row. Using regular expression we divide every element in the list
       // using a specific delimiting character
 
-      lines.foreach(line => line.split(" " + "\n").foreach(println))
+      lines.foreach(line => line.split(" ").foreach(println))
 
       // After everything is done the stream MUST be closed to prevent memory leakage
       // and let the processes unlock the file
       lineParser.close()
-      LineMatcher()
+      LineMatcher("Lion")
     } catch {
       // Handling different exceptions
       case e: FileNotFoundException => println("Couldn't find that file!")
