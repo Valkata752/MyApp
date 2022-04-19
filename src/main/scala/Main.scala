@@ -1,7 +1,24 @@
-import java.io.{FileNotFoundException, IOException}
+import org.json4s._
+import org.json4s.jackson.Serialization.writePretty
+
+import java.io.{File, PrintWriter}
 import scala.io.Source
 
-object Main extends App {
+trait Animal
+
+case class Wolf(name: String, character: Map[String, String]) extends Animal
+
+case class Elephant(sound: String, runSpeed: String, dangerous: String, size: String) extends Animal
+
+case class Rhino(runSpeed: String, dangerous: String, sound: String, misc: String) extends Animal
+
+case class Monkey(jumps: String, dangerous: String) extends Animal
+
+case class Lion(runSpeed: String, dangerous: String, size: String) extends Animal
+
+object Main extends App with Animal {
+  var animalsList: Map[String, Map[String, String]] = Map.empty
+
   def LineParser(sourceFile: String): Unit = {
     // Using try/catch minimizes the risk of unhandled exceptions and unexpected behaviour
     // in the application
@@ -21,128 +38,119 @@ object Main extends App {
       // using a specific delimiting character and we pass it into the case class
       // where a match in animal name is found and process it
 
-      lines.foreach(line => LineMatcher(line.split(":").head))
+      lines.foreach(line => lineMatcher(line))
+      // lines.foreach(line => lineMatcher(line.split(":").head))
 
       // After everything is done the stream MUST be closed to prevent memory leakage
       // and let the processes unlock the file
       lineParser.close()
     } catch {
-      // Handling different exceptions
-      case e: FileNotFoundException => println("Couldn't find that file!")
-      case e: IOException => println("Had an IOException trying to read the file")
+      // Handling different exceptions and printing reason
+      case e: Exception => println("Error during proccess" + e.getMessage)
     }
   }
 
+  implicit val formats: DefaultFormats.type = DefaultFormats
+
   // Do something when a match is found
-  def LineMatcher(line: String): Unit = {
-    line match {
-      case "Elephant" =>
+  def lineMatcher(line: String): Unit = {
+    val nameParser = "(\\w+):(.+)\\s?".r
+    // Find the first element which is actually the name of the animal
+    // as well as the first one of its characteristics and pass it onto the second regex to match
+    // the next ones
+    val nameCharacterMap = nameParser.findFirstMatchIn(line).map(m => (m.group(1).trim(), m.group(2).trim()))
 
-        println("It's an elephant")
+    val characterParser = "(\\w+)=(\\w+)(,\\s)?".r
+    // Find all the elements matching the characteristics regex and put them inside a Map collection
+    val characterMap = characterParser.findAllMatchIn(nameCharacterMap.get._2).map(m => (m.group(1).trim(), m.group(2).trim())).toMap
+    val animalMap: (String, Map[String, String]) = nameCharacterMap.get._1 -> characterMap
 
-        //TODO Така се задават променливите така че да са в обект, а в случай с case class?
+    addToList(animalMap)
 
-          Elephant.Set("Toot", "Slow", "Not really", "Very Big")
+    someChecker(animalMap)
 
-      case "Wolf" =>
-        println("It's a Wolf")
-        Wolf.Set("Howl", "Fast", "Yes")
+    /*
+    This Regular Expression usage has quite a specific use because all the lines must be formatted exactly alike
+    otherwise in case of a parameter not in place it won't be recognized as valid and will throw an exception
 
-      case "Lion" =>
-        println("It's a lion")
-        Lion.Set("Fast", "Yes", "Big")
+        val patternWolf = "^Wolf:sound=([a-zA-Z]*),runSpeed=([a-zA-Z]*),dangerous=([a-zA-Z]*)$".r
+        val patternElephant = "^Elephant:name=([a-zA-Z]*),sound=([a-zA-Z]*),runSpeed=([a-zA-Z]*),dangerous=([a-zA-Z]*),size=([a-zA-Z]*)$".r
+        val patternRhino = "^Rhino:name=([a-zA-Z]*),runSpeed=([a-zA-Z]*),dangerous=([a-zA-Z]*),sound=([a-zA-Z]*),misc=([a-z A-Z]*)$".r
+        val patternLion = "^Lion:name=([a-zAZ]*),runSpeed=([a-zA-Z]*),dangerous=([a-zA-Z]*),size=([a-zA-Z]*)$".r
+        val patternMonkey = "^Monkey:name=([a-zA-Z]*),jumps=([a-zA-Z]*),dangerous=([a-zA-Z]*)$".r
+     */
 
-      case "Rhino" =>
-        println("It's a rhino")
-        Rhino.Set("Slow", "Not really", "Thump", "A Big Animal")
+    /* line match {
 
-      case "Monkey" =>
-        println("It's a monkey")
-        Monkey.Set(jumps = true, "no")
+      case patternWolf(name, sound, runspeed, dangerous) =>
+        val wolfInst = Wolf(sound = sound, runSpeed = runspeed, dangerous = dangerous)
+        addToList(Wolf.getClass.getSimpleName -> wolfInst)
 
-      case _ => println("Match not found")
+      case patternElephant(name, sound, runspeed, dangerous, size) =>
+        val elInst = Elephant(name = name, sound = sound, runSpeed = runspeed, dangerous = dangerous, size = size)
+        addToList(Map(elInst.getClass.getName -> elInst))
+
+      case patternRhino(name, runSpeed, dangerous, sound, misc) =>
+        val rhInst = Rhino(name = name, runSpeed = runSpeed, dangerous = dangerous, sound = sound, misc = misc)
+        addToList(Map(rhInst.getClass.getName -> rhInst))
+
+      case patternLion(name, runspeed, dangerous, size) =>
+        val lionInst = Lion(name = name, runSpeed = runspeed, dangerous = dangerous, size = size)
+        addToList(Map(lionInst.getClass.getName -> lionInst))
+
+      case patternMonkey(name, jumps, dangerous) =>
+        val monkeyInst = Monkey(name = name, jumps = jumps, dangerous = dangerous)
+        addToList(monkeyInst.getClass.getName -> monkeyInst))
+      case _ => println("No parser found for: " + line);
     }
+
+     */
   }
 
   LineParser("C:\\Users\\LENOVO\\IdeaProjects\\MyApp\\src\\main\\scala\\animals.txt")
 
-  Elephant.Get()
-  Rhino.Get()
-  Monkey.Get()
-  Wolf.Get()
-  Lion.Get()
+  // Printing result from writing to file JSON.txt in the form of a bool -
+  // true at success and false at failure
+  print(readWriteJson("write"))
 
-}
-
-// TODO В случая са 5 животни, а в случай, че са повече или има неназовано до момента такова, как ще се извлече?
-
-object Elephant {
-  var (soundC, rC, dC, sC) = ("", "", "", "")
-
-  def Set(sound: String, runSpeed: String, dangerous: String, size: String): Unit = {
-    soundC = sound
-    rC = runSpeed
-    dC = dangerous
-    sC = size
+  def addToList(item: (String, Map[String, String])): Unit = {
+    // Check if the list of animals is empty and assign the animal as an initial item in the map
+    if (animalsList.isEmpty) {
+      animalsList = Map(item._1 -> item._2)
+    } else {
+      // or add it to the list ot map key -> values
+      animalsList = animalsList + item
+    }
   }
 
-  def Get(): Unit = {
-    println("The elephant is: " + soundC, rC, dC, sC)
-  }
-}
+  def readWriteJson(result: String): Boolean = {
+    result match {
+      // In case of input string "write" it will create/edit the file with the list of animals
+      case "write" =>
+        val jsonStr = writePretty("Animals" -> animalsList)
+        val writer = new PrintWriter(new File("C:\\Users\\LENOVO\\IdeaProjects\\MyApp\\src\\main\\scala\\JSON.txt"))
+        writer.write(jsonStr)
+        writer.close()
+        true
 
-object Wolf {
-  var (soundC, rC, dC) = ("", "", "")
+      // In case of input string "read" it will read from the file
+      case "read" =>
+        val src = Source.fromFile("C:\\Users\\LENOVO\\IdeaProjects\\MyApp\\src\\main\\scala\\JSON.txt")
+        src.close()
+        true
 
-  def Set(sound: String, runSpeed: String, dangerous: String): Unit = {
-    soundC = sound
-    rC = runSpeed
-    dC = dangerous
-  }
-
-  def Get(): Unit = {
-    println("The Wolf is: "  + rC, dC)
-  }
-}
-
-object Lion {
-  var (rC, dC, sC) = ("", "", "")
-
-  def Set(runSpeed: String, dangerous: String, size: String): Unit = {
-    rC = runSpeed
-    dC = dangerous
-    sC = size
+      // Or if the input is an unrecognized variable it throws a message
+      case _ => println("Result string is invalid. Check your input")
+        false
+    }
   }
 
-  def Get(): Unit = {
-    println("The lion is: " + rC, dC, sC)
-  }
-}
-
-object Monkey {
-  var (jC, dC) = (false, "")
-
-  def Set(jumps: Boolean, dangerous: String): Unit = {
-    jC = jumps
-    dC = dangerous
-  }
-
-  def Get(): Unit = {
-    println("The monkey is: " + jC, dC)
-  }
-}
-
-object Rhino {
-  var (rC, dC, sC, mC) = ("", "", "", "")
-
-  def Set(runSpeed: String, dangerous: String, sound: String, misc: String) : Unit = {
-    rC = runSpeed
-    dC = dangerous
-    sC = sound
-    mC = misc
-  }
-
-  def Get(): Unit = {
-    println("The Rhino is: " + rC, dC, sC, mC)
+  // Function for some actions with the maps
+  def someChecker(animalMap: (String, Map[String, String])): Unit = {
+    if (animalMap._2.contains("size")) {
+      println("The " + animalMap._1 + " is " + animalMap._2("size"))
+    } else {
+      println("The " + animalMap._1 + " does not contain size")
+    }
   }
 }
