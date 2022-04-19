@@ -6,7 +6,7 @@ import scala.io.Source
 
 trait Animal
 
-case class Wolf(name: String, character: Map[String, String]) extends Animal
+case class Wolf(character: Map[String, String]) extends Animal
 
 case class Elephant(sound: String, runSpeed: String, dangerous: String, size: String) extends Animal
 
@@ -14,10 +14,13 @@ case class Rhino(runSpeed: String, dangerous: String, sound: String, misc: Strin
 
 case class Monkey(jumps: String, dangerous: String) extends Animal
 
+// You can do it that way, but you need to know all the features of the animal and insert a default value in case there isn't
+// any data inside the expected feature place
 case class Lion(runSpeed: String, dangerous: String, size: String) extends Animal
 
 object Main extends App with Animal {
   var animalsList: Map[String, Map[String, String]] = Map.empty
+  var listCC: Map[String, Animal] = Map.empty
 
   def LineParser(sourceFile: String): Unit = {
     // Using try/catch minimizes the risk of unhandled exceptions and unexpected behaviour
@@ -65,9 +68,10 @@ object Main extends App with Animal {
     val characterMap = characterParser.findAllMatchIn(nameCharacterMap.get._2).map(m => (m.group(1).trim(), m.group(2).trim())).toMap
     val animalMap: (String, Map[String, String]) = nameCharacterMap.get._1 -> characterMap
 
-    addToList(animalMap)
+//    addToList(animalMap)
+    createCaseClass(animalMap)
 
-    someChecker(animalMap)
+    //    someChecker(animalMap)
 
     /*
     This Regular Expression usage has quite a specific use because all the lines must be formatted exactly alike
@@ -80,31 +84,31 @@ object Main extends App with Animal {
         val patternMonkey = "^Monkey:name=([a-zA-Z]*),jumps=([a-zA-Z]*),dangerous=([a-zA-Z]*)$".r
      */
 
-    /* line match {
-
-      case patternWolf(name, sound, runspeed, dangerous) =>
-        val wolfInst = Wolf(sound = sound, runSpeed = runspeed, dangerous = dangerous)
-        addToList(Wolf.getClass.getSimpleName -> wolfInst)
-
-      case patternElephant(name, sound, runspeed, dangerous, size) =>
-        val elInst = Elephant(name = name, sound = sound, runSpeed = runspeed, dangerous = dangerous, size = size)
-        addToList(Map(elInst.getClass.getName -> elInst))
-
-      case patternRhino(name, runSpeed, dangerous, sound, misc) =>
-        val rhInst = Rhino(name = name, runSpeed = runSpeed, dangerous = dangerous, sound = sound, misc = misc)
-        addToList(Map(rhInst.getClass.getName -> rhInst))
-
-      case patternLion(name, runspeed, dangerous, size) =>
-        val lionInst = Lion(name = name, runSpeed = runspeed, dangerous = dangerous, size = size)
-        addToList(Map(lionInst.getClass.getName -> lionInst))
-
-      case patternMonkey(name, jumps, dangerous) =>
-        val monkeyInst = Monkey(name = name, jumps = jumps, dangerous = dangerous)
-        addToList(monkeyInst.getClass.getName -> monkeyInst))
-      case _ => println("No parser found for: " + line);
-    }
-
-     */
+    //    line match {
+    //
+    //      case patternWolf(name, sound, runspeed, dangerous) =>
+    //        val wolfInst = Wolf(sound = sound, runSpeed = runspeed, dangerous = dangerous)
+    //        addToList(Wolf.getClass.getSimpleName -> wolfInst)
+    //
+    //      case patternElephant(name, sound, runspeed, dangerous, size) =>
+    //        val elInst = Elephant(name = name, sound = sound, runSpeed = runspeed, dangerous = dangerous, size = size)
+    //        addToList(Map(elInst.getClass.getName -> elInst))
+    //
+    //      case patternRhino(name, runSpeed, dangerous, sound, misc) =>
+    //        val rhInst = Rhino(name = name, runSpeed = runSpeed, dangerous = dangerous, sound = sound, misc = misc)
+    //        addToList(Map(rhInst.getClass.getName -> rhInst))
+    //
+    //      case patternLion(name, runspeed, dangerous, size) =>
+    //        val lionInst = Lion(name = name, runSpeed = runspeed, dangerous = dangerous, size = size)
+    //        addToList(Map(lionInst.getClass.getName -> lionInst))
+    //
+    //      case patternMonkey(name, jumps, dangerous) =>
+    //        val monkeyInst = Monkey(name = name, jumps = jumps, dangerous = dangerous)
+    //        addToList(monkeyInst.getClass.getName -> monkeyInst))
+    //      case _ => println("No parser found for: " + line);
+    //    }
+    //
+    //     */
   }
 
   LineParser("C:\\Users\\LENOVO\\IdeaProjects\\MyApp\\src\\main\\scala\\animals.txt")
@@ -112,6 +116,35 @@ object Main extends App with Animal {
   // Printing result from writing to file JSON.txt in the form of a bool -
   // true at success and false at failure
   print(readWriteJson("write"))
+
+  def createCaseClass(caseClass2be: (String, Map[String, String])): Unit = {
+    val it = caseClass2be._2
+    caseClass2be._1 match {
+      case "Lion" =>
+        val lionInst = Lion(it("runSpeed"), it("dangerous"), it("size"))
+        listCC = listCC + (lionInst.getClass.getSimpleName -> lionInst)
+
+      case "Rhino" =>
+        val rhInst = Rhino(it.getOrElse("runSpeed", "value not found"), it.getOrElse("dangerous", "Value not found"),
+          it.getOrElse("sound", "Value not found"), it.getOrElse("misc", "Value not found"))
+        listCC = listCC + (rhInst.getClass.getSimpleName -> rhInst)
+
+      case "Monkey" =>
+        val monkeyInst = Monkey(it.getOrElse("jumps", "Value not found"), it.getOrElse("dangerous", "Value not found"))
+        listCC = listCC + (monkeyInst.getClass.getSimpleName -> monkeyInst)
+
+      case "Wolf" =>
+        val wolfInst = Wolf(caseClass2be._2)
+        listCC = listCC + (wolfInst.getClass.getSimpleName -> wolfInst)
+
+      case "Elephant" =>
+        val elInst = Elephant(it.getOrElse("sound", "default"), it.getOrElse("runSpeed", "Value not found"),
+          it.getOrElse("dangerous", "Value not found" ), it.getOrElse("size", "Value not found"))
+
+        listCC = listCC + (elInst.getClass.getSimpleName -> elInst)
+      case _ => println("It's an unexpected animal")
+    }
+  }
 
   def addToList(item: (String, Map[String, String])): Unit = {
     // Check if the list of animals is empty and assign the animal as an initial item in the map
@@ -127,7 +160,7 @@ object Main extends App with Animal {
     result match {
       // In case of input string "write" it will create/edit the file with the list of animals
       case "write" =>
-        val jsonStr = writePretty("Animals" -> animalsList)
+        val jsonStr = writePretty("Animals" -> listCC)
         val writer = new PrintWriter(new File("C:\\Users\\LENOVO\\IdeaProjects\\MyApp\\src\\main\\scala\\JSON.txt"))
         writer.write(jsonStr)
         writer.close()

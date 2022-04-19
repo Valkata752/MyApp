@@ -10,9 +10,11 @@
       "dangerous" : "Maybe"
     },
     "Wolf" : {
-      "sound" : "Howl",
-      "runSpeed" : "Quick",
-      "dangerous" : "Yes"
+      "character" : {
+        "sound" : "Howl",
+        "runSpeed" : "Quick",
+        "dangerous" : "Yes"
+      }
     },
     "Elephant" : {
       "sound" : "Toot",
