@@ -8,18 +8,20 @@ trait Animal
 
 case class Wolf(character: Map[String, String]) extends Animal
 
-case class Elephant(sound: String, runSpeed: String, dangerous: String, size: String) extends Animal
+case class Elephant(character: Map[String, String]) extends Animal
 
-case class Rhino(runSpeed: String, dangerous: String, sound: String, misc: String) extends Animal
+case class Rhino(character: Map[String, String]) extends Animal
 
-case class Monkey(jumps: String, dangerous: String) extends Animal
+case class Lion(character: Map[String, String]) extends Animal
+
+case class DefaultAnimal(name: String, character: Map[String, String]) extends Animal
 
 // You can do it that way, but you need to know all the features of the animal and insert a default value in case there isn't
 // any data inside the expected feature place
-case class Lion(runSpeed: String, dangerous: String, size: String) extends Animal
+case class Monkey(jumps: String, dangerous: String) extends Animal
 
 object Main extends App with Animal {
-  var animalsList: Map[String, Map[String, String]] = Map.empty
+  var animalsList: List[Animal] = List.empty
   var listCC: Map[String, Animal] = Map.empty
 
   def LineParser(sourceFile: String): Unit = {
@@ -68,10 +70,10 @@ object Main extends App with Animal {
     val characterMap = characterParser.findAllMatchIn(nameCharacterMap.get._2).map(m => (m.group(1).trim(), m.group(2).trim())).toMap
     val animalMap: (String, Map[String, String]) = nameCharacterMap.get._1 -> characterMap
 
-//    addToList(animalMap)
+    //    addToList(animalMap)
     createCaseClass(animalMap)
 
-    //    someChecker(animalMap)
+    someChecker(animalMap)
 
     /*
     This Regular Expression usage has quite a specific use because all the lines must be formatted exactly alike
@@ -115,52 +117,52 @@ object Main extends App with Animal {
 
   // Printing result from writing to file JSON.txt in the form of a bool -
   // true at success and false at failure
-  print(readWriteJson("write"))
+  print(readWriteJson("write", listCC))
 
   def createCaseClass(caseClass2be: (String, Map[String, String])): Unit = {
     val it = caseClass2be._2
     caseClass2be._1 match {
       case "Lion" =>
-        val lionInst = Lion(it("runSpeed"), it("dangerous"), it("size"))
+        val lionInst = Lion(caseClass2be._2)
         listCC = listCC + (lionInst.getClass.getSimpleName -> lionInst)
 
       case "Rhino" =>
-        val rhInst = Rhino(it.getOrElse("runSpeed", "value not found"), it.getOrElse("dangerous", "Value not found"),
-          it.getOrElse("sound", "Value not found"), it.getOrElse("misc", "Value not found"))
+        val rhInst = Rhino(caseClass2be._2)
         listCC = listCC + (rhInst.getClass.getSimpleName -> rhInst)
-
-      case "Monkey" =>
-        val monkeyInst = Monkey(it.getOrElse("jumps", "Value not found"), it.getOrElse("dangerous", "Value not found"))
-        listCC = listCC + (monkeyInst.getClass.getSimpleName -> monkeyInst)
 
       case "Wolf" =>
         val wolfInst = Wolf(caseClass2be._2)
         listCC = listCC + (wolfInst.getClass.getSimpleName -> wolfInst)
 
       case "Elephant" =>
-        val elInst = Elephant(it.getOrElse("sound", "default"), it.getOrElse("runSpeed", "Value not found"),
-          it.getOrElse("dangerous", "Value not found" ), it.getOrElse("size", "Value not found"))
-
+        val elInst = Elephant(caseClass2be._2)
         listCC = listCC + (elInst.getClass.getSimpleName -> elInst)
-      case _ => println("It's an unexpected animal")
+
+      case "Monkey" =>
+        val monkeyInst = Monkey(it.getOrElse("jumps", "Value not found"), it.getOrElse("dangerous", "Value not found"))
+        listCC = listCC + (monkeyInst.getClass.getSimpleName -> monkeyInst)
+
+      case _ =>
+        val defInst = DefaultAnimal(caseClass2be._1, caseClass2be._2)
+        listCC = listCC + (defInst.name -> defInst)
     }
   }
 
-  def addToList(item: (String, Map[String, String])): Unit = {
+  def addToList(item: Animal): Unit = {
     // Check if the list of animals is empty and assign the animal as an initial item in the map
     if (animalsList.isEmpty) {
-      animalsList = Map(item._1 -> item._2)
+      animalsList = List(item)
     } else {
       // or add it to the list ot map key -> values
-      animalsList = animalsList + item
+      animalsList = animalsList :+ item
     }
   }
 
-  def readWriteJson(result: String): Boolean = {
+  def readWriteJson(result: String, list: Map[String, Animal]): Boolean = {
     result match {
       // In case of input string "write" it will create/edit the file with the list of animals
       case "write" =>
-        val jsonStr = writePretty("Animals" -> listCC)
+        val jsonStr = writePretty("Animals" -> list)
         val writer = new PrintWriter(new File("C:\\Users\\LENOVO\\IdeaProjects\\MyApp\\src\\main\\scala\\JSON.txt"))
         writer.write(jsonStr)
         writer.close()

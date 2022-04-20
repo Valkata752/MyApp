@@ -3,3 +3,4 @@ Elephant:sound=Toot,runSpeed=Slow,dangerous=No,size=Big
 Monkey:jumps=Yes,dangerous=Maybe
 Lion:runSpeed=Quick,dangerous=Yes,size=Big
 Rhino:runSpeed=Slow,dangerous=Yes,sound=Unknown,misc=Has-a-nose
+Money: sound=nice, value=none
