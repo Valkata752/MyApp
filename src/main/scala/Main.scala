@@ -21,8 +21,9 @@ case class DefaultAnimal(name: String, character: Map[String, String]) extends A
 case class Monkey(jumps: String, dangerous: String) extends Animal
 
 object Main extends App with Animal {
-  var animalsList: List[Animal] = List.empty
   var listCC: Map[String, Animal] = Map.empty
+
+  implicit val formats: DefaultFormats.type = DefaultFormats
 
   def LineParser(sourceFile: String): Unit = {
     // Using try/catch minimizes the risk of unhandled exceptions and unexpected behaviour
@@ -55,8 +56,6 @@ object Main extends App with Animal {
     }
   }
 
-  implicit val formats: DefaultFormats.type = DefaultFormats
-
   // Do something when a match is found
   def lineMatcher(line: String): Unit = {
     val nameParser = "(\\w+):(.+)\\s?".r
@@ -65,7 +64,7 @@ object Main extends App with Animal {
     // the next ones
     val nameCharacterMap = nameParser.findFirstMatchIn(line).map(m => (m.group(1).trim(), m.group(2).trim()))
 
-    val characterParser = "(\\w+)=(\\w+)(,\\s)?".r
+    val characterParser = "(\\w+)=([\\w ]+)(,\\s)?".r
     // Find all the elements matching the characteristics regex and put them inside a Map collection
     val characterMap = characterParser.findAllMatchIn(nameCharacterMap.get._2).map(m => (m.group(1).trim(), m.group(2).trim())).toMap
     val animalMap: (String, Map[String, String]) = nameCharacterMap.get._1 -> characterMap
@@ -117,7 +116,7 @@ object Main extends App with Animal {
 
   // Printing result from writing to file JSON.txt in the form of a bool -
   // true at success and false at failure
-  print(readWriteJson("write", listCC))
+  writeJSON(listCC)
 
   def createCaseClass(caseClass2be: (String, Map[String, String])): Unit = {
     val it = caseClass2be._2
@@ -144,41 +143,31 @@ object Main extends App with Animal {
 
       case _ =>
         val defInst = DefaultAnimal(caseClass2be._1, caseClass2be._2)
-        listCC = listCC + (defInst.name -> defInst)
+        listCC = listCC + (caseClass2be._1 -> defInst)
     }
   }
 
-  def addToList(item: Animal): Unit = {
-    // Check if the list of animals is empty and assign the animal as an initial item in the map
-    if (animalsList.isEmpty) {
-      animalsList = List(item)
-    } else {
-      // or add it to the list ot map key -> values
-      animalsList = animalsList :+ item
-    }
+  //  def addToList(item: (String, Animal): Unit = {
+  //    // Check if the list of animals is empty and assign the animal as an initial item in the map
+  //    if (listCC.isEmpty) {
+  ////      animalsList: Map[String, Map[String, String]] = Map.empty
+  //      listCC = Map(item._1 -> item._2)
+  //    } else {
+  //      // or add it to the list ot map key -> values
+  //      listCC = listCC + (item._1 -> item._2)
+  //    }
+
+  def writeJSON(list: Map[String, Animal]): Unit = {
+    val jsonStr = writePretty("Animals" -> list)
+    val writer = new PrintWriter(new File("C:\\Users\\LENOVO\\IdeaProjects\\MyApp\\src\\main\\scala\\JSON.txt"))
+    writer.write(jsonStr)
+    writer.close()
   }
 
-  def readWriteJson(result: String, list: Map[String, Animal]): Boolean = {
-    result match {
-      // In case of input string "write" it will create/edit the file with the list of animals
-      case "write" =>
-        val jsonStr = writePretty("Animals" -> list)
-        val writer = new PrintWriter(new File("C:\\Users\\LENOVO\\IdeaProjects\\MyApp\\src\\main\\scala\\JSON.txt"))
-        writer.write(jsonStr)
-        writer.close()
-        true
-
-      // In case of input string "read" it will read from the file
-      case "read" =>
-        val src = Source.fromFile("C:\\Users\\LENOVO\\IdeaProjects\\MyApp\\src\\main\\scala\\JSON.txt")
-        src.close()
-        true
-
-      // Or if the input is an unrecognized variable it throws a message
-      case _ => println("Result string is invalid. Check your input")
-        false
-    }
-  }
+  //  def readJSON(fileToRead: String): Unit = {
+  //    val src = Source.fromFile("C:\\Users\\LENOVO\\IdeaProjects\\MyApp\\src\\main\\scala\\JSON.txt")
+  //    src.close()
+  //  }
 
   // Function for some actions with the maps
   def someChecker(animalMap: (String, Map[String, String])): Unit = {

@@ -38,7 +38,7 @@
         "runSpeed" : "Slow",
         "dangerous" : "Yes",
         "sound" : "Unknown",
-        "misc" : "Has"
+        "misc" : "Has a nose"
       }
     }
   }
