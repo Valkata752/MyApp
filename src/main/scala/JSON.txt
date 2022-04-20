@@ -1,0 +1,45 @@
+{
+  "Animals" : {
+    "Money" : {
+      "name" : "Money",
+      "character" : {
+        "sound" : "nice",
+        "value" : "none"
+      }
+    },
+    "Lion" : {
+      "character" : {
+        "runSpeed" : "Quick",
+        "dangerous" : "Yes",
+        "size" : "Big"
+      }
+    },
+    "Monkey" : {
+      "jumps" : "Yes",
+      "dangerous" : "Maybe"
+    },
+    "Wolf" : {
+      "character" : {
+        "sound" : "Howl",
+        "runSpeed" : "Quick",
+        "dangerous" : "Yes"
+      }
+    },
+    "Elephant" : {
+      "character" : {
+        "sound" : "Toot",
+        "runSpeed" : "Slow",
+        "dangerous" : "No",
+        "size" : "Big"
+      }
+    },
+    "Rhino" : {
+      "character" : {
+        "runSpeed" : "Slow",
+        "dangerous" : "Yes",
+        "sound" : "Unknown",
+        "misc" : "Has"
+      }
+    }
+  }
+}
