@@ -1,0 +1,18 @@
+{
+   "Animals":{
+      "Money":{
+         "name":"Money",
+         "character":{
+            "sound":"nice",
+            "value":"none"
+         }
+      },
+      "Lion":{
+         "character":{
+            "runSpeed":"Quick",
+            "dangerous":"Yes",
+            "size":"Big"
+         }
+      }
+   }
+}

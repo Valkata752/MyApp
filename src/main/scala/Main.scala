@@ -1,5 +1,5 @@
 import org.json4s._
-import org.json4s.jackson.Serialization.writePretty
+import org.json4s.jackson.Serialization.{read, write, writePretty}
 
 import java.io.{File, PrintWriter}
 import scala.io.Source
@@ -117,6 +117,8 @@ object Main extends App with Animal {
   // Printing result from writing to file JSON.txt in the form of a bool -
   // true at success and false at failure
   writeJSON(listCC)
+  foldList(List(1, 2, 3, 4, 5))
+//  readJSON("C:\\Users\\LENOVO\\IdeaProjects\\MyApp\\src\\main\\scala\\JSON.txt")
 
   def createCaseClass(caseClass2be: (String, Map[String, String])): Unit = {
     val it = caseClass2be._2
@@ -176,5 +178,15 @@ object Main extends App with Animal {
     } else {
       println("The " + animalMap._1 + " does not contain size")
     }
+  }
+
+  def readJSON(input: String): Unit = {
+    val string = read("{\"Animals\":{\"Money\":{\"name\":\"Money\",\"character\":{\"sound\":\"nice\",\"value\":\"none\"}},\"Lion\":{\"character\":{\"runSpeed\":\"Quick\",\"dangerous\":\"Yes\",\"size\":\"Big\"}},\"Monkey\":{\"jumps\":\"Yes\",\"dangerous\":\"Maybe\"},\"Wolf\":{\"character\":{\"sound\":\"Howl\",\"runSpeed\":\"Quick\",\"dangerous\":\"Yes\"}},\"Elephant\":{\"character\":{\"sound\":\"Toot\",\"runSpeed\":\"Slow\",\"dangerous\":\"No\",\"size\":\"Big\"}},\"Rhino\":{\"character\":{\"runSpeed\":\"Slow\",\"dangerous\":\"Yes\",\"sound\":\"Unknown\",\"misc\":\"Has a nose\"}}}}").toString
+  }
+
+  def foldList(list: List[Int]) : Unit = {
+    val sum = list.foldRight(0)((_ ,y) => y + 3)
+    println(sum)
+//    assert(sum == 15)
   }
 }
