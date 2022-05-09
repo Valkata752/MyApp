@@ -1,5 +1,5 @@
 # MyApp
-Hello!
+Hello there!
 
 This is this example's task description:
 
