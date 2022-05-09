@@ -1,5 +1,4 @@
 # MyApp
-First Application
 Hello!
 
 This is this example's task description:
